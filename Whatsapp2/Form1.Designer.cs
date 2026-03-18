@@ -162,7 +162,6 @@
             rtbChat.Size = new Size(696, 510);
             rtbChat.TabIndex = 1;
             rtbChat.Text = "";
-            rtbChat.TextChanged += rtbChat_TextChanged;
             // 
             // panelMessageInput
             // 

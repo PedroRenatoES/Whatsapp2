@@ -7,6 +7,7 @@ namespace Whatsapp2
 {
     public partial class Form1 : Form
     {
+        // ===== Modelos de chat =====
         private sealed class ChatMessage
         {
             public required string Texto { get; init; }
@@ -24,9 +25,9 @@ namespace Whatsapp2
             public override string ToString() => Online ? $"🟢 {Nombre}" : $"🔴 {Nombre}";
         }
 
+        // ===== Estado principal =====
         private readonly List<ChatSession> _chats = new();
         private readonly object _chatsLock = new();
-        private readonly Dictionary<ChatSession, Rectangle> _chatEditButtons = new();
 
         private int _localPort = 5001;
         private string _claveCompartida = "clave-demo";
@@ -34,6 +35,10 @@ namespace Whatsapp2
         private CancellationTokenSource? _cts;
         private LogsForm? _logsForm;
 
+        // ===== Accesos rápidos de UI =====
+        private ChatSession? SelectedChat => lstChats.SelectedItem as ChatSession;
+
+        // ===== Inicialización y ciclo de vida =====
         public Form1()
         {
             InitializeComponent();
@@ -49,6 +54,7 @@ namespace Whatsapp2
             StopNetworking();
         }
 
+        // ===== Eventos de UI: lista de chats =====
         private void lstChats_SelectedIndexChanged(object sender, EventArgs e)
         {
             RefreshSelectedChatView();
@@ -67,7 +73,6 @@ namespace Whatsapp2
             var textColor = (e.State & DrawItemState.Selected) == DrawItemState.Selected ? SystemColors.HighlightText : SystemColors.ControlText;
 
             var buttonRect = new Rectangle(e.Bounds.Right - 26, e.Bounds.Top + 3, 20, e.Bounds.Height - 6);
-            _chatEditButtons[chat] = buttonRect;
 
             var textRect = new Rectangle(e.Bounds.Left + 6, e.Bounds.Top + 3, e.Bounds.Width - 38, e.Bounds.Height - 6);
             TextRenderer.DrawText(e.Graphics, chat.ToString(), e.Font!, textRect, textColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
@@ -86,16 +91,15 @@ namespace Whatsapp2
             }
 
             var chat = (ChatSession)lstChats.Items[index]!;
-            if (_chatEditButtons.TryGetValue(chat, out var buttonRect) && buttonRect.Contains(e.Location))
+            var itemRect = lstChats.GetItemRectangle(index);
+            var buttonRect = new Rectangle(itemRect.Right - 26, itemRect.Top + 3, 20, itemRect.Height - 6);
+            if (buttonRect.Contains(e.Location))
             {
                 EditChat(chat);
             }
         }
 
-        private void rtbChat_TextChanged(object sender, EventArgs e)
-        {
-        }
-
+        // ===== Eventos de UI: envío/configuración =====
         private void txtMensaje_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter && !e.Shift)
@@ -137,12 +141,12 @@ namespace Whatsapp2
                 return;
             }
 
-            AddChat(nuevoChat.IpRemota, nuevoChat.PuertoRemoto, selectAfterAdd: true);
+            UpsertChat(nuevoChat.IpRemota, nuevoChat.PuertoRemoto, selectAfterAdd: true);
         }
 
         private async void btnEnviar_Click(object sender, EventArgs e)
         {
-            var chat = GetSelectedChat();
+            var chat = SelectedChat;
             if (chat is null)
             {
                 MessageBox.Show(this, "Selecciona un chat.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -159,7 +163,7 @@ namespace Whatsapp2
             txtMensaje.Clear();
 
             var encryptedText = EncryptText(texto, _claveCompartida);
-            AddCryptoLog($"OUT {chat.Nombre} :: {encryptedText}");
+            _logsForm?.AddLog($"OUT {chat.Nombre} :: {encryptedText}");
             var payload = $"FROM:{_localPort};MSG:{encryptedText}";
             var enviado = await SendPayloadAsync(chat, payload);
             if (!enviado)
@@ -168,6 +172,7 @@ namespace Whatsapp2
             }
         }
 
+        // ===== Red TCP: listener y recepción =====
         private void StartNetworking()
         {
             StopNetworking();
@@ -254,7 +259,7 @@ namespace Whatsapp2
                     return;
                 }
 
-                var chat = AddChat(remoteIp, fromPort, selectAfterAdd: false);
+                var chat = UpsertChat(remoteIp, fromPort, selectAfterAdd: false);
                 SetChatStatus(chat, true);
 
                 if (tipo == "PING")
@@ -264,7 +269,7 @@ namespace Whatsapp2
 
                 if (tipo == "MSG")
                 {
-                    AddCryptoLog($"IN  {chat.Nombre} :: {cuerpo}");
+                    _logsForm?.AddLog($"IN  {chat.Nombre} :: {cuerpo}");
                     var textoPlano = TryDecryptText(cuerpo, _claveCompartida, out var desencriptado)
                         ? desencriptado
                         : "[No se pudo desencriptar el mensaje]";
@@ -323,8 +328,10 @@ namespace Whatsapp2
             }
         }
 
-        private ChatSession AddChat(string ip, int puerto, bool selectAfterAdd)
+        // ===== Gestión de chats =====
+        private ChatSession UpsertChat(string ip, int puerto, bool selectAfterAdd)
         {
+            var isNew = false;
             ChatSession? chat;
             lock (_chatsLock)
             {
@@ -333,34 +340,27 @@ namespace Whatsapp2
                 {
                     chat = new ChatSession { Ip = ip, Puerto = puerto };
                     _chats.Add(chat);
+                    isNew = true;
                 }
             }
 
-            if (InvokeRequired)
+            void SyncUi()
             {
-                BeginInvoke(() => AddChatToList(chat, selectAfterAdd));
-            }
-            else
-            {
-                AddChatToList(chat, selectAfterAdd);
+                if (isNew)
+                {
+                    lstChats.Items.Add(chat);
+                }
+
+                if (selectAfterAdd)
+                {
+                    lstChats.SelectedItem = chat;
+                }
+
+                lstChats.Invalidate();
             }
 
+            if (InvokeRequired) BeginInvoke(SyncUi); else SyncUi();
             return chat;
-        }
-
-        private void AddChatToList(ChatSession chat, bool selectAfterAdd)
-        {
-            if (!lstChats.Items.Contains(chat))
-            {
-                lstChats.Items.Add(chat);
-            }
-
-            if (selectAfterAdd)
-            {
-                lstChats.SelectedItem = chat;
-            }
-
-            lstChats.Invalidate();
         }
 
         private void EditChat(ChatSession chat)
@@ -401,6 +401,7 @@ namespace Whatsapp2
             lstChats.Invalidate();
         }
 
+        // ===== Estado, mensajes y render del chat =====
         private void SetChatStatus(ChatSession chat, bool online)
         {
             if (chat.Online == online)
@@ -416,21 +417,9 @@ namespace Whatsapp2
                 return;
             }
 
-            var index = lstChats.Items.IndexOf(chat);
-            if (index >= 0)
-            {
-                var selected = lstChats.SelectedItem;
-                lstChats.BeginUpdate();
-                lstChats.Items.RemoveAt(index);
-                lstChats.Items.Insert(index, chat);
-                if (selected is not null)
-                {
-                    lstChats.SelectedItem = selected;
-                }
-                lstChats.EndUpdate();
-            }
+            lstChats.Invalidate();
 
-            if (ReferenceEquals(GetSelectedChat(), chat))
+            if (ReferenceEquals(SelectedChat, chat))
             {
                 lblEstadoConexion.Text = online ? "Online" : "Offline";
                 lblEstadoConexion.ForeColor = online ? Color.SeaGreen : Color.Firebrick;
@@ -455,7 +444,7 @@ namespace Whatsapp2
                 });
             }
 
-            if (ReferenceEquals(GetSelectedChat(), chat))
+            if (ReferenceEquals(SelectedChat, chat))
             {
                 RefreshSelectedChatView();
             }
@@ -463,7 +452,7 @@ namespace Whatsapp2
 
         private void RefreshSelectedChatView()
         {
-            var chat = GetSelectedChat();
+            var chat = SelectedChat;
             if (chat is null)
             {
                 rtbChat.Clear();
@@ -504,60 +493,25 @@ namespace Whatsapp2
             rtbChat.ScrollToCaret();
         }
 
-        private ChatSession? GetSelectedChat()
-        {
-            return lstChats.SelectedItem as ChatSession;
-        }
-
+        // ===== Protocolo de mensajes =====
         private static void ParsePayload(string payload, out int fromPort, out string tipo, out string cuerpo)
         {
             fromPort = 0;
             tipo = string.Empty;
             cuerpo = string.Empty;
 
-            var fromPrefix = "FROM:";
-            var separator = ";";
+            var parts = payload.Split(';', 2);
+            if (parts.Length != 2 || !parts[0].StartsWith("FROM:", StringComparison.Ordinal) || !int.TryParse(parts[0][5..], out fromPort)) return;
 
-            if (!payload.StartsWith(fromPrefix, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            var sepIndex = payload.IndexOf(separator, StringComparison.Ordinal);
-            if (sepIndex < 0)
-            {
-                return;
-            }
-
-            var portText = payload[fromPrefix.Length..sepIndex];
-            if (!int.TryParse(portText, out fromPort))
-            {
-                fromPort = 0;
-                return;
-            }
-
-            var rest = payload[(sepIndex + 1)..];
-            if (rest == "PING")
-            {
-                tipo = "PING";
-                return;
-            }
-
-            if (rest.StartsWith("MSG:", StringComparison.Ordinal))
-            {
-                tipo = "MSG";
-                cuerpo = rest[4..];
-            }
+            if (parts[1] == "PING") { tipo = "PING"; return; }
+            if (parts[1].StartsWith("MSG:", StringComparison.Ordinal)) { tipo = "MSG"; cuerpo = parts[1][4..]; }
         }
 
-        private void AddCryptoLog(string texto)
-        {
-            _logsForm?.AddLog(texto);
-        }
-
+        // ===== Cifrado AES-256 =====
         private static string EncryptText(string plainText, string sharedKey)
         {
-            var key = DeriveKey(sharedKey);
+            using var sha = SHA256.Create();
+            var key = sha.ComputeHash(Encoding.UTF8.GetBytes(sharedKey));
 
             using var aes = Aes.Create();
             aes.KeySize = 256;
@@ -592,7 +546,8 @@ namespace Whatsapp2
                 Buffer.BlockCopy(allBytes, 0, iv, 0, 16);
                 Buffer.BlockCopy(allBytes, 16, cipherBytes, 0, cipherBytes.Length);
 
-                var key = DeriveKey(sharedKey);
+                using var sha = SHA256.Create();
+                var key = sha.ComputeHash(Encoding.UTF8.GetBytes(sharedKey));
 
                 using var aes = Aes.Create();
                 aes.KeySize = 256;
@@ -611,12 +566,6 @@ namespace Whatsapp2
                 plainText = string.Empty;
                 return false;
             }
-        }
-
-        private static byte[] DeriveKey(string sharedKey)
-        {
-            using var sha = SHA256.Create();
-            return sha.ComputeHash(Encoding.UTF8.GetBytes(sharedKey));
         }
     }
 }
