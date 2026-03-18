@@ -96,6 +96,15 @@ namespace Whatsapp2
         {
         }
 
+        private void txtMensaje_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && !e.Shift)
+            {
+                e.SuppressKeyPress = true;
+                btnEnviar.PerformClick();
+            }
+        }
+
         private void btnConfiguracion_Click(object sender, EventArgs e)
         {
             using var configForm = new ConfiguracionForm(_localPort, _claveCompartida);
@@ -474,7 +483,19 @@ namespace Whatsapp2
                 rtbChat.SelectionStart = rtbChat.TextLength;
                 rtbChat.SelectionLength = 0;
                 rtbChat.SelectionAlignment = msg.EsPropio ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-                rtbChat.AppendText($"[{msg.Fecha:HH:mm:ss}] {msg.Texto}{Environment.NewLine}");
+
+                var bubbleColor = msg.EsPropio
+                    ? Color.FromArgb(207, 244, 210)
+                    : Color.FromArgb(236, 239, 241);
+                var textColor = Color.FromArgb(33, 33, 33);
+
+                rtbChat.SelectionBackColor = bubbleColor;
+                rtbChat.SelectionColor = textColor;
+                rtbChat.AppendText($"  {msg.Texto}{Environment.NewLine}  {msg.Fecha:HH:mm}  ");
+
+                rtbChat.SelectionBackColor = rtbChat.BackColor;
+                rtbChat.SelectionColor = textColor;
+                rtbChat.AppendText(Environment.NewLine + Environment.NewLine);
             }
 
             rtbChat.SelectionStart = rtbChat.TextLength;

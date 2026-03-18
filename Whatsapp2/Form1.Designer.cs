@@ -197,6 +197,7 @@
             txtMensaje.PlaceholderText = "Escribe un mensaje";
             txtMensaje.Size = new Size(676, 40);
             txtMensaje.TabIndex = 0;
+            txtMensaje.KeyDown += txtMensaje_KeyDown;
             // 
             // panelRightHeader
             // 
