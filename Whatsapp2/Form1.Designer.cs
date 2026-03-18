@@ -31,6 +31,7 @@
             splitContainerMain = new SplitContainer();
             lstChats = new ListBox();
             panelLeftHeader = new Panel();
+            btnLogs = new Button();
             btnNuevoChat = new Button();
             btnConfiguracion = new Button();
             lblChats = new Label();
@@ -77,17 +78,22 @@
             // 
             lstChats.BorderStyle = BorderStyle.None;
             lstChats.Dock = DockStyle.Fill;
+            lstChats.DrawMode = DrawMode.OwnerDrawFixed;
             lstChats.Font = new Font("Segoe UI", 10F);
             lstChats.FormattingEnabled = true;
+            lstChats.ItemHeight = 24;
             lstChats.Location = new Point(0, 50);
             lstChats.Name = "lstChats";
             lstChats.Size = new Size(280, 570);
             lstChats.TabIndex = 1;
+            lstChats.DrawItem += lstChats_DrawItem;
+            lstChats.MouseDown += lstChats_MouseDown;
             lstChats.SelectedIndexChanged += lstChats_SelectedIndexChanged;
             // 
             // panelLeftHeader
             // 
             panelLeftHeader.BackColor = Color.Gainsboro;
+            panelLeftHeader.Controls.Add(btnLogs);
             panelLeftHeader.Controls.Add(btnNuevoChat);
             panelLeftHeader.Controls.Add(btnConfiguracion);
             panelLeftHeader.Controls.Add(lblChats);
@@ -97,6 +103,18 @@
             panelLeftHeader.Padding = new Padding(12, 0, 0, 0);
             panelLeftHeader.Size = new Size(280, 50);
             panelLeftHeader.TabIndex = 0;
+            // 
+            // btnLogs
+            // 
+            btnLogs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnLogs.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnLogs.Location = new Point(140, 9);
+            btnLogs.Name = "btnLogs";
+            btnLogs.Size = new Size(40, 32);
+            btnLogs.TabIndex = 3;
+            btnLogs.Text = "L";
+            btnLogs.UseVisualStyleBackColor = true;
+            btnLogs.Click += btnLogs_Click;
             // 
             // btnNuevoChat
             // 
@@ -241,6 +259,7 @@
 
         private SplitContainer splitContainerMain;
         private Panel panelLeftHeader;
+        private Button btnLogs;
         private Button btnNuevoChat;
         private Button btnConfiguracion;
         private Label lblChats;

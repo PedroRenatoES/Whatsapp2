@@ -31,6 +31,8 @@ namespace Whatsapp2
             tableLayoutPanelMain = new TableLayoutPanel();
             lblPuertoLocal = new Label();
             nudPuertoLocal = new NumericUpDown();
+            lblClaveCompartida = new Label();
+            txtClaveCompartida = new TextBox();
             panelButtons = new Panel();
             btnCerrar = new Button();
             btnGuardar = new Button();
@@ -46,15 +48,18 @@ namespace Whatsapp2
             tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
             tableLayoutPanelMain.Controls.Add(lblPuertoLocal, 0, 0);
             tableLayoutPanelMain.Controls.Add(nudPuertoLocal, 1, 0);
-            tableLayoutPanelMain.Controls.Add(panelButtons, 0, 1);
+            tableLayoutPanelMain.Controls.Add(lblClaveCompartida, 0, 1);
+            tableLayoutPanelMain.Controls.Add(txtClaveCompartida, 1, 1);
+            tableLayoutPanelMain.Controls.Add(panelButtons, 0, 2);
             tableLayoutPanelMain.Dock = DockStyle.Fill;
             tableLayoutPanelMain.Location = new Point(12, 12);
             tableLayoutPanelMain.Name = "tableLayoutPanelMain";
             tableLayoutPanelMain.Padding = new Padding(5);
-            tableLayoutPanelMain.RowCount = 2;
+            tableLayoutPanelMain.RowCount = 3;
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanelMain.Size = new Size(416, 126);
+            tableLayoutPanelMain.Size = new Size(416, 178);
             tableLayoutPanelMain.TabIndex = 0;
             tableLayoutPanelMain.SetColumnSpan(panelButtons, 2);
             // 
@@ -80,15 +85,35 @@ namespace Whatsapp2
             nudPuertoLocal.TabIndex = 1;
             nudPuertoLocal.Value = new decimal(new int[] { 5000, 0, 0, 0 });
             // 
+            // lblClaveCompartida
+            // 
+            lblClaveCompartida.Anchor = AnchorStyles.Left;
+            lblClaveCompartida.AutoSize = true;
+            lblClaveCompartida.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblClaveCompartida.Location = new Point(8, 73);
+            lblClaveCompartida.Name = "lblClaveCompartida";
+            lblClaveCompartida.Size = new Size(145, 23);
+            lblClaveCompartida.TabIndex = 2;
+            lblClaveCompartida.Text = "Clave compartida";
+            // 
+            // txtClaveCompartida
+            // 
+            txtClaveCompartida.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            txtClaveCompartida.Location = new Point(189, 68);
+            txtClaveCompartida.Name = "txtClaveCompartida";
+            txtClaveCompartida.PasswordChar = '*';
+            txtClaveCompartida.Size = new Size(259, 27);
+            txtClaveCompartida.TabIndex = 3;
+            // 
             // panelButtons
             // 
             panelButtons.Controls.Add(btnCerrar);
             panelButtons.Controls.Add(btnGuardar);
             panelButtons.Dock = DockStyle.Fill;
-            panelButtons.Location = new Point(8, 60);
+            panelButtons.Location = new Point(8, 112);
             panelButtons.Name = "panelButtons";
             panelButtons.Size = new Size(400, 58);
-            panelButtons.TabIndex = 2;
+            panelButtons.TabIndex = 4;
             // 
             // btnCerrar
             // 
@@ -118,7 +143,7 @@ namespace Whatsapp2
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCerrar;
-            ClientSize = new Size(440, 150);
+            ClientSize = new Size(440, 202);
             Controls.Add(tableLayoutPanelMain);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -138,6 +163,8 @@ namespace Whatsapp2
         private TableLayoutPanel tableLayoutPanelMain;
         private Label lblPuertoLocal;
         private NumericUpDown nudPuertoLocal;
+        private Label lblClaveCompartida;
+        private TextBox txtClaveCompartida;
         private Panel panelButtons;
         private Button btnCerrar;
         private Button btnGuardar;
