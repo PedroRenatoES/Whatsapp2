@@ -35,7 +35,7 @@
             btnNuevoChat = new Button();
             btnConfiguracion = new Button();
             lblChats = new Label();
-            rtbChat = new RichTextBox();
+            lstMensajes = new ListBox();
             panelMessageInput = new Panel();
             btnEnviar = new Button();
             txtMensaje = new TextBox();
@@ -67,7 +67,7 @@
             // splitContainerMain.Panel2
             // 
             splitContainerMain.Panel2.BackColor = Color.White;
-            splitContainerMain.Panel2.Controls.Add(rtbChat);
+            splitContainerMain.Panel2.Controls.Add(lstMensajes);
             splitContainerMain.Panel2.Controls.Add(panelMessageInput);
             splitContainerMain.Panel2.Controls.Add(panelRightHeader);
             splitContainerMain.Size = new Size(980, 620);
@@ -150,18 +150,20 @@
             lblChats.TabIndex = 0;
             lblChats.Text = "Chats";
             // 
-            // rtbChat
+            // lstMensajes
             // 
-            rtbChat.BackColor = Color.White;
-            rtbChat.BorderStyle = BorderStyle.None;
-            rtbChat.Dock = DockStyle.Fill;
-            rtbChat.Font = new Font("Segoe UI", 10F);
-            rtbChat.Location = new Point(0, 50);
-            rtbChat.Name = "rtbChat";
-            rtbChat.ReadOnly = true;
-            rtbChat.Size = new Size(696, 510);
-            rtbChat.TabIndex = 1;
-            rtbChat.Text = "";
+            lstMensajes.BackColor = Color.FromArgb(231, 224, 216);
+            lstMensajes.BorderStyle = BorderStyle.None;
+            lstMensajes.Dock = DockStyle.Fill;
+            lstMensajes.DrawMode = DrawMode.OwnerDrawVariable;
+            lstMensajes.Font = new Font("Segoe UI", 10F);
+            lstMensajes.FormattingEnabled = true;
+            lstMensajes.Location = new Point(0, 50);
+            lstMensajes.Name = "lstMensajes";
+            lstMensajes.Size = new Size(696, 510);
+            lstMensajes.TabIndex = 1;
+            lstMensajes.DrawItem += lstMensajes_DrawItem;
+            lstMensajes.MeasureItem += lstMensajes_MeasureItem;
             // 
             // panelMessageInput
             // 
@@ -270,7 +272,7 @@
         private Panel panelMessageInput;
         private Button btnEnviar;
         private TextBox txtMensaje;
-        private RichTextBox rtbChat;
+        private ListBox lstMensajes;
 
         #endregion
     }

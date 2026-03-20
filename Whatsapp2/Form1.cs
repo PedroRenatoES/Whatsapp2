@@ -17,11 +17,12 @@ namespace Whatsapp2
 
         private sealed class ChatSession
         {
+            public string Alias { get; set; } = string.Empty;
             public string Ip { get; set; } = string.Empty;
             public int Puerto { get; set; }
             public List<ChatMessage> Mensajes { get; } = new();
             public bool Online { get; set; }
-            public string Nombre => $"{Ip}:{Puerto}";
+            public string Nombre => !string.IsNullOrWhiteSpace(Alias) ? Alias : $"{Ip}:{Puerto}";
             public override string ToString() => Online ? $"🟢 {Nombre}" : $"🔴 {Nombre}";
         }
 
@@ -141,7 +142,7 @@ namespace Whatsapp2
                 return;
             }
 
-            UpsertChat(nuevoChat.IpRemota, nuevoChat.PuertoRemoto, selectAfterAdd: true);
+            UpsertChat(nuevoChat.NombreChat, nuevoChat.IpRemota, nuevoChat.PuertoRemoto, selectAfterAdd: true);
         }
 
         private async void btnEnviar_Click(object sender, EventArgs e)
@@ -259,7 +260,7 @@ namespace Whatsapp2
                     return;
                 }
 
-                var chat = UpsertChat(remoteIp, fromPort, selectAfterAdd: false);
+                var chat = UpsertChat(string.Empty, remoteIp, fromPort, selectAfterAdd: false);
                 SetChatStatus(chat, true);
 
                 if (tipo == "PING")
@@ -329,7 +330,7 @@ namespace Whatsapp2
         }
 
         // ===== Gestión de chats =====
-        private ChatSession UpsertChat(string ip, int puerto, bool selectAfterAdd)
+        private ChatSession UpsertChat(string alias, string ip, int puerto, bool selectAfterAdd)
         {
             var isNew = false;
             ChatSession? chat;
@@ -338,9 +339,13 @@ namespace Whatsapp2
                 chat = _chats.FirstOrDefault(c => c.Ip == ip && c.Puerto == puerto);
                 if (chat is null)
                 {
-                    chat = new ChatSession { Ip = ip, Puerto = puerto };
+                    chat = new ChatSession { Alias = alias, Ip = ip, Puerto = puerto };
                     _chats.Add(chat);
                     isNew = true;
+                }
+                else if (!string.IsNullOrWhiteSpace(alias) && chat.Alias != alias)
+                {
+                    chat.Alias = alias;
                 }
             }
 
@@ -365,7 +370,7 @@ namespace Whatsapp2
 
         private void EditChat(ChatSession chat)
         {
-            using var editarForm = new NuevoChatForm(chat.Ip, chat.Puerto, "Editar chat");
+            using var editarForm = new NuevoChatForm(chat.Alias, chat.Ip, chat.Puerto, "Editar chat");
             if (editarForm.ShowDialog(this) != DialogResult.OK)
             {
                 return;
@@ -386,6 +391,7 @@ namespace Whatsapp2
 
             lock (_chatsLock)
             {
+                chat.Alias = editarForm.NombreChat;
                 chat.Ip = editarForm.IpRemota;
                 chat.Puerto = editarForm.PuertoRemoto;
             }
@@ -455,7 +461,7 @@ namespace Whatsapp2
             var chat = SelectedChat;
             if (chat is null)
             {
-                rtbChat.Clear();
+                lstMensajes.Items.Clear();
                 lblChatTitle.Text = $"Chats (Local {_localPort})";
                 lblEstadoConexion.Text = "-";
                 lblEstadoConexion.ForeColor = Color.DimGray;
@@ -466,31 +472,71 @@ namespace Whatsapp2
             lblEstadoConexion.Text = chat.Online ? "Online" : "Offline";
             lblEstadoConexion.ForeColor = chat.Online ? Color.SeaGreen : Color.Firebrick;
 
-            rtbChat.Clear();
+            lstMensajes.BeginUpdate();
+            lstMensajes.Items.Clear();
             foreach (var msg in chat.Mensajes)
             {
-                rtbChat.SelectionStart = rtbChat.TextLength;
-                rtbChat.SelectionLength = 0;
-                rtbChat.SelectionAlignment = msg.EsPropio ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-
-                var bubbleColor = msg.EsPropio
-                    ? Color.FromArgb(207, 244, 210)
-                    : Color.FromArgb(236, 239, 241);
-                var textColor = Color.FromArgb(33, 33, 33);
-
-                rtbChat.SelectionBackColor = bubbleColor;
-                rtbChat.SelectionColor = textColor;
-                rtbChat.AppendText($"  {msg.Texto}{Environment.NewLine}  {msg.Fecha:HH:mm}  ");
-
-                rtbChat.SelectionBackColor = rtbChat.BackColor;
-                rtbChat.SelectionColor = textColor;
-                rtbChat.AppendText(Environment.NewLine + Environment.NewLine);
+                lstMensajes.Items.Add(msg);
             }
+            lstMensajes.EndUpdate();
 
-            rtbChat.SelectionStart = rtbChat.TextLength;
-            rtbChat.SelectionLength = 0;
-            rtbChat.SelectionAlignment = HorizontalAlignment.Left;
-            rtbChat.ScrollToCaret();
+            if (lstMensajes.Items.Count > 0)
+            {
+                lstMensajes.TopIndex = lstMensajes.Items.Count - 1;
+            }
+        }
+
+        private void lstMensajes_MeasureItem(object sender, MeasureItemEventArgs e)
+        {
+            if (e.Index < 0 || e.Index >= lstMensajes.Items.Count)
+                return;
+
+            var msg = (ChatMessage)lstMensajes.Items[e.Index]!;
+            var size = TextRenderer.MeasureText(e.Graphics, msg.Texto, lstMensajes.Font, new Size(lstMensajes.Width - 100, int.MaxValue), TextFormatFlags.WordBreak);
+            e.ItemHeight = size.Height + 35;
+        }
+
+        private void lstMensajes_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0 || e.Index >= lstMensajes.Items.Count)
+                return;
+
+            e.DrawBackground();
+
+            var msg = (ChatMessage)lstMensajes.Items[e.Index]!;
+            var isOwn = msg.EsPropio;
+
+            var maxWidth = lstMensajes.Width - 100;
+            var textSize = TextRenderer.MeasureText(e.Graphics, msg.Texto, lstMensajes.Font, new Size(maxWidth, int.MaxValue), TextFormatFlags.WordBreak);
+            using var smallFont = new Font(lstMensajes.Font.FontFamily, 8);
+            var timeSize = TextRenderer.MeasureText(e.Graphics, msg.Fecha.ToString("HH:mm"), smallFont, new Size(maxWidth, int.MaxValue));
+
+            var bubbleWidth = Math.Max(textSize.Width, timeSize.Width) + 20;
+            var bubbleHeight = textSize.Height + timeSize.Height + 15;
+
+            var x = isOwn ? lstMensajes.Width - bubbleWidth - 30 : 10;
+            var y = e.Bounds.Top + 5;
+
+            var bg = isOwn ? Color.FromArgb(220, 248, 198) : Color.White;
+            using var brush = new SolidBrush(bg);
+
+            var rect = new Rectangle(x, y, bubbleWidth, bubbleHeight);
+            int radius = 10;
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+            path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+            path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
+            path.CloseFigure();
+
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.FillPath(brush, path);
+
+            var textRect = new Rectangle(x + 10, y + 10, textSize.Width, textSize.Height);
+            TextRenderer.DrawText(e.Graphics, msg.Texto, lstMensajes.Font, textRect, Color.Black, TextFormatFlags.WordBreak);
+
+            var timeRect = new Rectangle(x + bubbleWidth - timeSize.Width - 10, y + bubbleHeight - timeSize.Height - 5, timeSize.Width, timeSize.Height);
+            TextRenderer.DrawText(e.Graphics, msg.Fecha.ToString("HH:mm"), smallFont, timeRect, Color.Gray);
         }
 
         // ===== Protocolo de mensajes =====

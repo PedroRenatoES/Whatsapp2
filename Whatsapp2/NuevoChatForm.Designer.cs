@@ -33,6 +33,8 @@ namespace Whatsapp2
             txtIpRemota = new TextBox();
             lblPuertoRemoto = new Label();
             nudPuertoRemoto = new NumericUpDown();
+            lblNombre = new Label();
+            txtNombre = new TextBox();
             panelButtons = new Panel();
             btnCancelar = new Button();
             btnCrear = new Button();
@@ -46,29 +48,52 @@ namespace Whatsapp2
             tableLayoutPanelMain.ColumnCount = 2;
             tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
             tableLayoutPanelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60F));
-            tableLayoutPanelMain.Controls.Add(lblIpRemota, 0, 0);
-            tableLayoutPanelMain.Controls.Add(txtIpRemota, 1, 0);
-            tableLayoutPanelMain.Controls.Add(lblPuertoRemoto, 0, 1);
-            tableLayoutPanelMain.Controls.Add(nudPuertoRemoto, 1, 1);
-            tableLayoutPanelMain.Controls.Add(panelButtons, 0, 2);
+            tableLayoutPanelMain.Controls.Add(lblNombre, 0, 0);
+            tableLayoutPanelMain.Controls.Add(txtNombre, 1, 0);
+            tableLayoutPanelMain.Controls.Add(lblIpRemota, 0, 1);
+            tableLayoutPanelMain.Controls.Add(txtIpRemota, 1, 1);
+            tableLayoutPanelMain.Controls.Add(lblPuertoRemoto, 0, 2);
+            tableLayoutPanelMain.Controls.Add(nudPuertoRemoto, 1, 2);
+            tableLayoutPanelMain.Controls.Add(panelButtons, 0, 3);
             tableLayoutPanelMain.Dock = DockStyle.Fill;
             tableLayoutPanelMain.Location = new Point(12, 12);
             tableLayoutPanelMain.Name = "tableLayoutPanelMain";
             tableLayoutPanelMain.Padding = new Padding(5);
-            tableLayoutPanelMain.RowCount = 3;
+            tableLayoutPanelMain.RowCount = 4;
+            tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 52F));
             tableLayoutPanelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanelMain.Size = new Size(436, 176);
+            tableLayoutPanelMain.Size = new Size(436, 228);
             tableLayoutPanelMain.TabIndex = 0;
             tableLayoutPanelMain.SetColumnSpan(panelButtons, 2);
+            // 
+            // lblNombre
+            // 
+            lblNombre.Anchor = AnchorStyles.Left;
+            lblNombre.AutoSize = true;
+            lblNombre.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblNombre.Location = new Point(8, 21);
+            lblNombre.Name = "lblNombre";
+            lblNombre.Size = new Size(76, 23);
+            lblNombre.TabIndex = 5;
+            lblNombre.Text = "Nombre";
+            // 
+            // txtNombre
+            // 
+            txtNombre.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            txtNombre.Location = new Point(178, 16);
+            txtNombre.Name = "txtNombre";
+            txtNombre.PlaceholderText = "Ej: Carlos";
+            txtNombre.Size = new Size(250, 27);
+            txtNombre.TabIndex = 6;
             // 
             // lblIpRemota
             // 
             lblIpRemota.Anchor = AnchorStyles.Left;
             lblIpRemota.AutoSize = true;
             lblIpRemota.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            lblIpRemota.Location = new Point(8, 21);
+            lblIpRemota.Location = new Point(8, 73);
             lblIpRemota.Name = "lblIpRemota";
             lblIpRemota.Size = new Size(93, 23);
             lblIpRemota.TabIndex = 0;
@@ -77,7 +102,7 @@ namespace Whatsapp2
             // txtIpRemota
             // 
             txtIpRemota.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            txtIpRemota.Location = new Point(178, 16);
+            txtIpRemota.Location = new Point(178, 68);
             txtIpRemota.Name = "txtIpRemota";
             txtIpRemota.PlaceholderText = "Ej: 192.168.1.25";
             txtIpRemota.Size = new Size(250, 27);
@@ -88,7 +113,7 @@ namespace Whatsapp2
             lblPuertoRemoto.Anchor = AnchorStyles.Left;
             lblPuertoRemoto.AutoSize = true;
             lblPuertoRemoto.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            lblPuertoRemoto.Location = new Point(8, 73);
+            lblPuertoRemoto.Location = new Point(8, 125);
             lblPuertoRemoto.Name = "lblPuertoRemoto";
             lblPuertoRemoto.Size = new Size(127, 23);
             lblPuertoRemoto.TabIndex = 2;
@@ -97,7 +122,7 @@ namespace Whatsapp2
             // nudPuertoRemoto
             // 
             nudPuertoRemoto.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            nudPuertoRemoto.Location = new Point(178, 68);
+            nudPuertoRemoto.Location = new Point(178, 120);
             nudPuertoRemoto.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
             nudPuertoRemoto.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nudPuertoRemoto.Name = "nudPuertoRemoto";
@@ -110,7 +135,7 @@ namespace Whatsapp2
             panelButtons.Controls.Add(btnCancelar);
             panelButtons.Controls.Add(btnCrear);
             panelButtons.Dock = DockStyle.Fill;
-            panelButtons.Location = new Point(8, 112);
+            panelButtons.Location = new Point(8, 164);
             panelButtons.Name = "panelButtons";
             panelButtons.Size = new Size(420, 56);
             panelButtons.TabIndex = 4;
@@ -143,7 +168,7 @@ namespace Whatsapp2
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancelar;
-            ClientSize = new Size(460, 200);
+            ClientSize = new Size(460, 252);
             Controls.Add(tableLayoutPanelMain);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -161,6 +186,8 @@ namespace Whatsapp2
         }
 
         private TableLayoutPanel tableLayoutPanelMain;
+        private Label lblNombre;
+        private TextBox txtNombre;
         private Label lblIpRemota;
         private TextBox txtIpRemota;
         private Label lblPuertoRemoto;

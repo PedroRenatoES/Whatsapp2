@@ -4,18 +4,20 @@ namespace Whatsapp2
 {
     public partial class NuevoChatForm : Form
     {
+        public string NombreChat => txtNombre.Text.Trim();
         public string IpRemota => txtIpRemota.Text.Trim();
         public int PuertoRemoto => (int)nudPuertoRemoto.Value;
 
         public NuevoChatForm()
-            : this(string.Empty, 5000, "Nuevo chat")
+            : this(string.Empty, string.Empty, 5000, "Nuevo chat")
         {
         }
 
-        public NuevoChatForm(string ipRemota, int puertoRemoto, string titulo)
+        public NuevoChatForm(string nombre, string ipRemota, int puertoRemoto, string titulo)
         {
             InitializeComponent();
             Text = titulo;
+            txtNombre.Text = nombre;
             txtIpRemota.Text = ipRemota;
             nudPuertoRemoto.Value = puertoRemoto;
         }
